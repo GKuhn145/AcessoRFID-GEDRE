@@ -25,7 +25,7 @@ Implementação de controle de acesso com RFID para o laboratório do GEDRE
 
 ## Fluxograma de controle de acesso
 
-<img src="Assets/fluxograma AcessoRFID GEDRE.svg" height="500">
+![fluxograma acesso](/Assets/fluxograma%20AcessoRFID%20GEDRE.svg)
 
 ## Roadmap
 
