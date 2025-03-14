@@ -23,9 +23,13 @@ Implementação de controle de acesso com RFID para o laboratório do GEDRE
 - Leitor RFID RC522
 - Leds indicadores (verde e vermelho), para confirmação e negação de entrada, ou representação de outros estados
 
-## Fluxograma de controle de acesso
+## Fluxograma de Controle de Acesso
 
-![fluxograma acesso](/Assets/fluxograma%20AcessoRFID%20GEDRE.svg)
+![fluxograma acesso](/Assets/Fluxograma%20de%20Controle%20de%20Acesso.svg)
+
+## Fluxograma de Cadastro e Descadastro
+
+![fluxograma cad-descad](/Assets/Fluxograma%20de%20Cadastro%20e%20Descadastro.svg)
 
 ## Roadmap
 
@@ -48,4 +52,4 @@ Implementação de controle de acesso com RFID para o laboratório do GEDRE
 - Terminal para os componentes
   - Projetar e imprimir invólucro para o leitor de cartões do lado externo do laboratório
   - Projetar e imprimir invólucro para botão interno de saída
-  - Analisar e reforçar as conexões existes do sistema da porta
+  - Analisar e reforçar as conexões existentes do sistema da porta
