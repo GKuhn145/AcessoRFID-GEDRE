@@ -12,10 +12,8 @@
 byte masterAdd[] = MASTER_ADD;
 #define MASTER_REMOVE             {0xF5, 0x07, 0x60, 0xBE}
 byte masterRemove[] = MASTER_REMOVE;
-#define MASTER_SIZE               4
-byte masterSize = MASTER_SIZE;
-#define RFID_TAG_MAX_SIZE             10
-#define RFID_FILE                 "/rfid_tags.bin"
+#define RFID_TAG_SIZE             4
+#define RFID_TAGS_FILE            "/rfid_tags.bin"
 
 // GPIO pins - Outputs
 #define PIN_LED_G                 9   // S3
@@ -30,40 +28,6 @@ byte masterSize = MASTER_SIZE;
 #define PIN_MISO                  12  // D6
 #define PIN_MOSI                  13  // D7
 
-// Task scheduler - Flags
-struct StructTaskPending
-{
-  bool ButtonInside = 0;
-  bool ButtonOutside = 0;
-  bool LedG = 0;
-  bool LedR = 0;
-  bool RelayDoor = 0;
-  bool RelayDoorbell = 0;
-  bool Buzzer = 0;
-  bool APServer = 0;
-} TaskPending;
-
-// Task scheduler - Call times (ms)
-struct StructTaskCallTime
-{
-  unsigned long Current = 0;
-  unsigned long LedG = 0;
-  unsigned long LedR = 0;
-  unsigned long RelayDoor = 0;
-  unsigned long RelayDoorbell = 0;
-  unsigned long Buzzer = 0;
-  unsigned long APServer = 0;
-} TaskCallTime;
-
-// Task scheduler - Duration (ms)
-struct StructTaskDuration
-{
-  short LedG = 0;
-  short LedR = 0;
-  short RelayDoor = 1000;
-  short RelayDoorbell = 1000;
-  short Buzzer = 0;
-} TaskDuration;
 
 MFRC522 mfrc522(PIN_SDA, UINT8_MAX);
 bool card_equal;
@@ -79,7 +43,7 @@ void setup()
   mfrc522.PCD_Init();
 
   if (!LittleFS.begin()) {
-    Serial.println("Failed to mount LittleFS");
+    Serial.println("Falha ao inicializar o arquivo (LittleFS)");
     return;
   }
 
@@ -95,21 +59,16 @@ void setup()
 
 void loop() {
 
-  if (!mfrc522.PICC_IsNewCardPresent()) return;
+  uint8_t uid[RFID_TAG_SIZE];
 
-  if (!mfrc522.PICC_ReadCardSerial()) return;
-
-  currTag = mfrc522.uid.uidByte;
-  size = mfrc522.uid.size;
-
-  if (checkEqualCard(currTag, size, masterAdd, masterSize)) {
-    add_tag_ordered(currTag, size);
-  };
-  if (checkEqualCard(currTag, size, masterRemove, masterSize)) {
-    denyTone();
-  };
-
-  printID(currTag, size);
+  if (readRFID(uid)) {
+    if (checkUID(uid)){
+      confirmTone()
+    }
+    else {
+      denyTone()
+    }
+  }
 
 }
 
@@ -120,29 +79,103 @@ void loop() {
 
 //---Utility Funtions----------------------------------------------------------------------------//
 
-void printID(byte *tag, byte size) {// Function to read and print the RFID card's UID.
-  Serial.print(F("Card UID:"));
-  dump_byte_array(tag, size);
-  Serial.println();
-  Serial.print(F("PICC type: "));
-  MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
-  Serial.println(mfrc522.PICC_GetTypeName(piccType));
+// Realiza a leitura de um RFID para um buffer
+bool readRFID(uint8_t *uidBuffer) {
+  if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+    return false;
+  }
+
+  if(mfrc522.uid.size != RFID_TAG_SIZE) {
+    Serial.println("UID inválido");
+    return false;
+  }
+
+  memcpy(uidBuffer, mfrc522.uid.uidByte, RFID_TAG_SIZE); // Salva a tag atual no buffer
+
+  if (DEBUG_MODE == true) {
+    Serial.print("UID lido: ");
+    for (int i = 0; i < RFID_TAG_SIZE; i++) {
+        Serial.printf("%02X ", uidBuffer[i]);
+    }
+    Serial.print("Tipo de PICC: ");
+    Serial.println(mfrc522.PICC_GetTypeName(mfrc522.PICC_GetType(mfrc522.uid.sak)));
+    Serial.println();
+  }
+
   mfrc522.PICC_HaltA();
+
+  return true;
 }
 
-bool checkEqualCard(byte* tag, byte& size1, byte* cardAgainst, byte& size2) {
-  if (size1 != size2) return false;
-  
-  card_equal = true;
-  for (byte i = 0; i < size1; i++) {
-    if (tag[i] != cardAgainst[i]) {
-      card_equal = false;
-      break;
+bool storeRFID(uint8_t *uid) {
+  File file = LittleFS.open(RFID_TAGS_FILE, "a");
+  if (!file) {
+    Serial.println("Erro ao abrir o arquivo de tags para escrita");
+    return false;
+  }
+
+  file.write(uid, RFID_TAG_SIZE);
+  file.close();
+  return true;
+}
+
+bool removeRFID(uint8_t *uidToRemove) {
+  File file = LittleFS.open(RFID_TAGS_FILE, "r");
+  if (!file) {
+    Serial.println("Erro ao abrir o arquivo de tags");
+    return false;
+  }
+
+  File tempFile = LittleFS.open("/temp.bin", "w");
+  if (!tempFile) {
+    Serial.println("Erro ao criar arquivo temporario");
+    file.close();
+    return false;
+  }
+
+  uint8_t uid[RFID_TAG_SIZE];
+  bool remove = false;
+  while (file.read(uid, RFID_TAG_SIZE) == RFID_TAG_SIZE) { // itera a lista de tags de 4 em 4 bytes (tag em tag)
+    if (memcmp(uid, uidToRemove, RFID_TAG_SIZE) != 0) {
+      tempFile.write(uid, RFID_TAG_SIZE);
+    }
+    else {
+      removed = true; // tag removida
     }
   }
 
-  return card_equal;
+  file.close();
+  tempFile.close();
+  // Se uma tag foi removida, substituímos o arquivo original
+  if (removed) {
+    LittleFS.remove(RFID_TAGS_FILE);
+    LittleFS.rename("/temp.bin", RFID_TAGS_FILE);
+  } else {
+    LittleFS.remove("/temp.bin");  // Nenhuma tag foi removida, deletamos o temporário
+  }
+
+  return removed;
 }
+
+bool checkUID(uint8_t *uidToCheck) {
+  File file = LittleFS.open(RFID_TAGS_FILE, "r");
+  if (!file) {
+    Serial.println("Erro ao abrir o arquivo de tags");
+    return false;
+  }
+
+  uint8_t uid[RFID_TAG_SIZE];
+  while(file.read(uid, RFID_TAG_SIZE) == RFID_TAG_SIZE) {
+    if (memcmp(uid, uidToCheck, RFID_TAG_SIZE) == 0) {
+      file.close();
+      return true; // tag encontrada
+    }
+  }
+
+  file.close();
+  return false; //tag não encontrada
+}
+
 // Sinal de confirmação ao abrir a porta
 void confirmTone() {
   digitalWrite(PIN_LED_G, HIGH);
@@ -165,116 +198,5 @@ void denyTone() {
   digitalWrite(PIN_LED_R, LOW);
 }
 
-// imprime o rfid para o serial
-void dump_byte_array(byte *buffer, byte bufferSize) {
-    for (byte i = 0; i < bufferSize; i++) {
-        Serial.print(buffer[i] < 0x10 ? " 0" : " ");
-        Serial.print(buffer[i], HEX);
-    }
-}
-
-bool add_tag_ordered(byte *tag, byte size) {
-  if (size > RFID_TAG_MAX_SIZE) {
-  Serial.println("Tag Inválida: formato não suportado");
-  return false; 
-  }
-
-  // Abertura ou criação do arquivo que guarda as tags
-  File file = LittleFS.open(RFID_FILE, "r+");
-  if(!file) {
-    file = LittleFS.open(RFID_FILE, "w+");
-    if (!file) {
-      Serial.println("Erro ao criar arquivo para guardar tag");
-      return false;
-    }
-  }
-
-  byte tagIter[RFID_TAG_MAX_SIZE];
-  size_t position = 0;
-  bool tagExists = false;
-
-  // loop para iterar as tags do arquivo e comparar a tag a ser inserida
-  while(file.readBytes((char *)tagIter, RFID_TAG_MAX_SIZE) == RFID_TAG_MAX_SIZE) {
-    int comparison = memcmp(tagIter, tag, size);
-    if (comparison == 0) {
-      tagExists = true;
-      break; // tag já existente no arquivo
-    } 
-    else if (comparison > 0) {
-      break; // Achou a posição para inserir a tag
-    } 
-    else {
-      position += RFID_TAG_MAX_SIZE; // Pula para a próxima tag no arquivo
-    }  
-  }
-
-  // rejeita inserção de tag já existente
-  if (tagExists) {
-    Serial.println("Tag já existe");
-    file.close();
-    return false;
-  }
-
-  File tempFile = LittleFS.open("/temp.bin", "w+");
-  if (!tempFile) {
-    Serial.println("Erro ao criar arquivo temporário de inserção de tags");
-    file.close();
-    return false;
-  }
-
-  // Volta ao começo do arquivo
-  file.seek(0, fs::SeekSet);
-
-  // Copia todas as tags anteriores à posição de inserção no arquivo temporário
-  while(position > 0 && file.readBytes((char *)tagIter, RFID_TAG_MAX_SIZE) == RFID_TAG_MAX_SIZE){
-    tempFile.write(tagIter, RFID_TAG_MAX_SIZE);
-    position -= RFID_TAG_MAX_SIZE;
-  }
-
-  // insere a tag nova
-  tempFile.write(tag, RFID_TAG_MAX_SIZE);
-
-  // copia o resto do arquivo
-  while (file.readBytes((char *)tagIter, RFID_TAG_MAX_SIZE) == RFID_TAG_MAX_SIZE) {
-    tempFile.write(tagIter, RFID_TAG_MAX_SIZE);
-  }
-
-  // fecha o arquivo atual
-  file.close();
-  tempFile.close();
-
-  // exclui o arquivo antigo e salva o novo
-  LittleFS.remove(RFID_FILE);
-  LittleFS.rename("/temp.bin", RFID_FILE);
-
-  return true;
-}
-
-int search_tag(byte *tag, byte size) {
-  if (size > RFID_TAG_MAX_SIZE) {
-    Serial.println("Tag Inválida: formato não suportado");
-    return -1; 
-  }
-
-  File file = LittleFS.open(RFID_FILE, "r");
-  if (!file) {
-    Serial.println("Arquivo das tags não encontrado");
-    return -1; // Arquivo não existe
-  }
-
-  byte tagIter[RFID_TAG_MAX_SIZE];
-  int position = 0;
-
-  while (file.readBytes((char *)tagIter, RFID_TAG_MAX_SIZE) == RFID_TAG_MAX_SIZE) {
-    if (memcmp(tagIter, tag, size) == 0) {
-      file.close();
-      return position; // Retorna a posição no arquivo onde se encontra a tag
-    }
-    position++;
-  }
-
-  file.close();
-  return -1; // Tag não encontrada no arquivo
-}
 
 
