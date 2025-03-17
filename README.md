@@ -36,14 +36,14 @@ Implementação de controle de acesso com RFID para o laboratório do GEDRE
 ### O que foi feito
 
 - Padronização do formato dos bytes dos cartões durante leitura
-- Adição de cartões/tags mestre de cadastro e descadastro
+- Adição de tags por meio de tags mestre de cadastro e descadastro
 - Feedback de sucesso e falha
+- Sistema de arquivos locais no ESP32, usando o LittleFS
   
 ### O que falta ser feito
 
-- Sistema de arquivos no ESP32 para controle de acesso
-  - Usar a biblioteca LittleFS para guardar internamente os dados de acesso de cada cartão
-  - Sincronizar periodicamente com o banco de dados na planilha do Drive
+- Sincronizar o ESP periodicamente com o banco de dados na planilha do Drive
+  - Ajustar tags mestres a partir da planilha do Drive
 
 - Planilha online no Drive com os dados de acesso
   - Fazer o script de recebimento de dados vindos do ESP32, reforçar a segurança
