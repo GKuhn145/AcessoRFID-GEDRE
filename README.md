@@ -42,8 +42,21 @@ Implementação de controle de acesso com RFID para o laboratório do GEDRE
   
 ### O que falta ser feito
 
-- Sincronizar o ESP periodicamente com o banco de dados na planilha do Drive
-  - Ajustar tags mestres a partir da planilha do Drive
+- Conectar com o Google Drive
+  - Quando?
+    1. Ao cadastrar e descadastrar usuários
+    2. Periodicamente: De hora em hora? Diariamente?
+    3. A cada X leituras
+    4. Quando a planilha mudar (request da planilha para o ESP, se possível)
+  - Como?
+    1. Conectar ao Wifi local do GEDRE
+    2. Criar um HTTPServer, para enviar requests ao Drive
+    3. Expor endpoints na planilha
+  - O que terá na planilha?
+    1. Registro de tags de entrada, associadas à um nome(opcional), data de cadastro, etc...
+    2. Aba com tags-mestre, para edição off-board
+    3. Aba com variáveis de controle: Debug Mode, Buzzer OFF, LEDs OFF, etc...
+    4. Logs?
 
 - Planilha online no Drive com os dados de acesso
   - Fazer o script de recebimento de dados vindos do ESP32, reforçar a segurança
