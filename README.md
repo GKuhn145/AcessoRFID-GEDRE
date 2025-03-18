@@ -58,11 +58,11 @@ Implementação de controle de acesso com RFID para o laboratório do GEDRE
     3. Aba com variáveis de controle: Debug Mode, Buzzer OFF, LEDs OFF, etc...
     4. Logs?
 
-- Planilha online no Drive com os dados de acesso
-  - Fazer o script de recebimento de dados vindos do ESP32, reforçar a segurança
-  - Implementar o sistema de timeout para evitar atualizações desnecessárias
-
 - Terminal para os componentes
   - Projetar e imprimir invólucro para o leitor de cartões do lado externo do laboratório
   - Projetar e imprimir invólucro para botão interno de saída
-  - Analisar e reforçar as conexões existentes do sistema da porta
+
+- Integrar com os controles da porta
+  - Verificar o estado das conexões e atualizá-las caso necessário
+  - Dividir controle da porta com o numpad já existente
+  - Inserir lógica do botão interno de saída, se possível, adicionar redundâncias para garantir o trancamento da porta.
