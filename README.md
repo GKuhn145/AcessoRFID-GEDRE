@@ -33,25 +33,25 @@ Implementação de controle de acesso com RFID para o laboratório do GEDRE
 
 ## Roadmap
 
-### O que foi feito
+### Estado Atual de Desenvolvimento
 
-- Padronização do formato dos bytes dos cartões durante leitura
-- Adição de tags por meio de tags mestre de cadastro e descadastro
-- Feedback de sucesso e falha
-- Sistema de arquivos locais no ESP32, usando o LittleFS
+- Padronização do formato dos bytes dos cartões durante leitura ✅
+- Adição de tags por meio de tags mestre de cadastro e descadastro ✅
+- Feedback de sucesso e falha ✅
+- Sistema de arquivos locais no ESP32, usando o LittleFS ✅
   
-### O que falta ser feito
+### Todo
 
 - Conectar com o Google Drive
   - Quando?
     1. Ao cadastrar e descadastrar usuários
     2. Periodicamente: De hora em hora? Diariamente?
     3. A cada X leituras
-    4. Quando a planilha mudar (request da planilha para o ESP, se possível)
+    4. Quando a planilha ou ESP mudar (MQTT)
   - Como?
     1. Conectar ao Wifi local do GEDRE
-    2. Criar um HTTPServer, para enviar requests ao Drive
-    3. Expor endpoints na planilha
+    2. Usar serviço HiveMQ para comunicar o ESP com a planilha
+    3. Criar lógica de atualização de dados
   - O que terá na planilha?
     1. Registro de tags de entrada, associadas à um nome(opcional), data de cadastro, etc...
     2. Aba com tags-mestre, para edição off-board
