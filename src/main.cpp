@@ -10,16 +10,6 @@
 #include "Feedback.h"
 
 
-
-// Feedback parameters
-#define BLINK_INTERVAL_MS 100
-#define CONFIRM_TIME_MS 100
-#define MAX_BLINKS 6
-
-// Declarações de tipos e classes
-// bool DEBUG_MODE = true;
-// MFRC522 mfrc522(PIN_SDA, UINT8_MAX);
-
 void setup() {
   Serial.begin(115200);
   SPI.begin();
