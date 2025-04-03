@@ -1,3 +1,5 @@
+#ifndef PINS_H
+#define PINS_H
 // GPIO pins - Outputs
 #define PIN_LED_G 9           // S3
 #define PIN_LED_R 10          // SK
@@ -10,3 +12,4 @@
 #define PIN_SCK 14   // D5
 #define PIN_MISO 12  // D6
 #define PIN_MOSI 13  // D7
+#endif

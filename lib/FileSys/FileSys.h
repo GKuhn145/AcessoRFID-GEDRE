@@ -1,3 +1,7 @@
+#ifndef FILESYS_H
+#define FILESYS_H
+#include "control.h"
+#include "Secrets.h"
 
 #include <LittleFS.h>
 
@@ -5,3 +9,4 @@
 void FileSysInit();
 
 void setDateTime();
+#endif

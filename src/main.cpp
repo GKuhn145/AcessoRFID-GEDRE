@@ -9,9 +9,13 @@
 #include "Wifi.h"
 #include "Feedback.h"
 
+bool DEBUG_MODE = true;
+
+void aceitarEntrada();
+void negarEntrada();
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   SPI.begin();
   mfrc522.PCD_Init();
 

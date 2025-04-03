@@ -1,9 +1,10 @@
-#include "pins.h"
+#ifndef TAGS_H
+#define TAGS_H
 
 #include <MFRC522.h>
 #include <SPI.h>
 
-MFRC522 mfrc522(PIN_SDA, UINT8_MAX);
+extern MFRC522 mfrc522;
 
 enum TagType {
     NORMAL,
@@ -25,3 +26,5 @@ bool checkRFID(uint8_t *uidToCheck);
 
 // Checa se uma tag lida é uma tag mestre
 TagType checkMasterTag(uint8_t *uid);
+
+#endif

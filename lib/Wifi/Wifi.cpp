@@ -3,6 +3,9 @@
 #include "control.h"
 #include "FileSys.h"
 
+WiFiClientSecure *client;
+BearSSL::CertStore certStore;
+
 void WifiInit()
 {
     WiFi.mode(WIFI_STA);
@@ -30,7 +33,7 @@ void WifiInit()
     }
 }
 
-void setCertStore()
+void CertStoreInit()
 {
     int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
     if (DEBUG_MODE)

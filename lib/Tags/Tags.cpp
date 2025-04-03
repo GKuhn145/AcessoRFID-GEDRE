@@ -1,8 +1,10 @@
 #include "control.h"
-#include "secrets.h"
+#include "Secrets.h"
 #include "Tags.h"
+#include "pins.h"
 
 #include <LittleFS.h>
+MFRC522 mfrc522(PIN_SDA, UINT8_MAX);
 
 bool readRFID(uint8_t *uidBuffer) {
   if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
